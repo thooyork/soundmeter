@@ -5,7 +5,7 @@ function rand(min, max){
 
 function init(){
      
-    var width = 0.2;
+    var width = .2;
     var depth = 20;
     var gap = 0.2;
     var bufferSize = 512;
@@ -24,6 +24,7 @@ function init(){
     var scene = new THREE.Scene();
 
     //SOUND
+    var loader = document.getElementById('loader');
     var playbtn = document.getElementById('sound');
     playbtn.addEventListener('mousedown', function(e){
         if(!sound.isPlaying){
@@ -51,6 +52,7 @@ function init(){
         sound.setLoop(true);
         sound.setVolume(.85);
         playbtn.style.opacity = 1;
+        loader.style.display = 'none';
     });
    
     //SOUND
