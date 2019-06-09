@@ -5,10 +5,10 @@ function rand(min, max){
 
 function init(){
      
-    var width = .2;
+    var width = 2;
     var depth = 20;
-    var gap = 0.2;
-    var bufferSize = 512;
+    var gap = 5;
+    var bufferSize = 2048;
 
     var renderer = new THREE.WebGLRenderer({ 
         antialias: true,
@@ -47,7 +47,7 @@ function init(){
 
     // load a sound and set it as the Audio object's buffer
     var audioLoader = new THREE.AudioLoader();
-    audioLoader.load( 'sounds/razor.mp3', function( buffer ) {
+    audioLoader.load( 'sounds/beat.mp3', function( buffer ) {
         sound.setBuffer( buffer );
         sound.setLoop(true);
         sound.setVolume(.85);
@@ -60,68 +60,65 @@ function init(){
     // var axesHelper = new THREE.AxesHelper( 50 );
     // scene.add( axesHelper );
 
-    var NoiseGen = new SimplexNoise;
-
     var frequencies = analyser.getFrequencyData();
+    analyser.smoothingTimeConstant;
     var columns = [];
 
     var group = new THREE.Group();
+    group.position.y = 5;
     var geometry = new THREE.BoxGeometry(width,0,depth);
+    var radius = 40;
+   
     
     for (i=0; i<frequencies.length; i++){
-        var x = (i*(width+gap));
-        var y = 1;
+        var theta = (i)/(frequencies.length) * Math.PI * 8; //buffersize = number of segments
+        var x = Math.cos(theta) * radius;
+        var y = Math.sin(theta) * radius;
         var z = 0;
+
         var material = new THREE.MeshStandardMaterial({
-            color: 0xffffff
+            color: 0xffffff,
+            transparent:true
         });
        
         var column = new THREE.Mesh(geometry, material);
         column.position.set(x,y,z);
+        column.rotation.z = theta;
         columns.push(column);
         group.add(columns[i]);
     }
 
-    group.position.x = -(frequencies.length * (width+gap))/2;
-    group.position.y = -10;
+    group.rotation.z = Math.PI/180 * -170;
     scene.add(group);
 
     var adjustCols = function(offset, data){
-        
+    var baseHue = 280;
             for (j=0; j<columns.length; j++){
                 var value = data[j];
                 if(value){
-                    var hue = 310 - parseInt(value)/2;
-                  // columns[j].position.x = j*4 - (data.length*2 - j);
-                   // columns[j].material.color = new THREE.Color("rgb("+red+","+green+",0)");
-                   columns[j].material.color = new THREE.Color("hsl("+hue+",50%,50%)");
-                    
-                    columns[j].scale.y = value/10;
-                   // columns[j].scale.z = value/2;
-                    
-                    //columns[j].rotation.x = (j+1) * Math.PI/180 * 4;
+                    var hue = baseHue - parseInt(value)/2;
+                    columns[j].material.color = new THREE.Color("hsl("+hue+",50%,50%)");
+                    columns[j].scale.x = value/22;
+                    columns[j].material.opacity = .75;
                 }
                 else{
-                    
-                    columns[j].material.color = new THREE.Color("hsl(310,50%,50%)");
-                    columns[j].scale.y = 1;
-                  //  columns[j].scale.z = 1;
-                //    columns[j].rotation.x = 0;
-               //     columns[j].position.x = 0;
+                    columns[j].material.color = new THREE.Color("hsl("+baseHue+",50%,50%)");
+                    columns[j].material.opacity = .5;
+                    columns[j].scale.y = .2;
+                    columns[j].scale.x = .3;
                 }
             }
       
     };
     
     
-
     var ambientlight = new THREE.AmbientLight(0xffffff, .5);
     var light = new THREE.SpotLight( 0xffffff, .85 );
     light.angle = Math.PI;
     light.castShadow = true;
     light.position.set(-(Math.PI/180)*45, 15, 50);
     
-    camera.position.set(0,25,70);
+    camera.position.set(-20,-75,50);
     //camera.lookAt(scene.position);
 
     scene.add(light);
@@ -131,7 +128,7 @@ function init(){
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.minDistance = .3;
     controls.maxDistance = 200;
-    controls.enableZoom = false;
+    controls.enableZoom = true;
     controls.autoRotate = false;
 
     var animate = function(){
