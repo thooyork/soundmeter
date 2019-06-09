@@ -5,10 +5,7 @@ function rand(min, max){
 
 function init(){
      
-    var width = 2;
-    var depth = 20;
-    var gap = 5;
-    var bufferSize = 2048;
+    var bufferSize = 512;
 
     var renderer = new THREE.WebGLRenderer({ 
         antialias: true,
@@ -57,78 +54,61 @@ function init(){
    
     //SOUND
 	
-    // var axesHelper = new THREE.AxesHelper( 50 );
-    // scene.add( axesHelper );
+    var axesHelper = new THREE.AxesHelper( 50 );
+    scene.add( axesHelper );
 
     var frequencies = analyser.getFrequencyData();
     analyser.smoothingTimeConstant;
-    var columns = [];
+    var vertices = [];
 
-    var group = new THREE.Group();
-    group.position.y = 5;
-    var geometry = new THREE.BoxGeometry(width,0,depth);
-    var radius = 40;
-   
-    
-    for (i=0; i<frequencies.length; i++){
-        var theta = (i)/(frequencies.length) * Math.PI * 8; //buffersize = number of segments
-        var x = Math.cos(theta) * radius;
-        var y = Math.sin(theta) * radius;
-        var z = 0;
+    var sphereGeometry = new THREE.SphereGeometry(5, 10, 10);
+    var material = new THREE.MeshBasicMaterial({
+        wireframe: true
+    });
 
-        var material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            transparent:true
-        });
+    var sphere = new THREE.Mesh(sphereGeometry, material);
+    scene.add(sphere);
+
+    var vertices = sphere.geometry.vertices;
+    console.log(vertices);
+    var center = new THREE.Vector3(0,0,0);
+    for (i=0; i<vertices.length; i++){
+        var x = vertices[i].x;
+        var y = vertices[i].y;
+        var z = vertices[i].z;
+        var scale = 10;
+        var dist = new THREE.Vector3(x,y,z).sub(center);
+        
+        var size = scale/2;
+        // var magnitude = 4.0;
        
-        var column = new THREE.Mesh(geometry, material);
-        column.position.set(x,y,z);
-        column.rotation.z = theta;
-        columns.push(column);
-        group.add(columns[i]);
+        vertices[i].x += dist.x;
+        vertices[i].y += dist.y;
+        vertices[i].z += dist.z;
+        
     }
 
-    group.rotation.z = Math.PI/180 * -170;
-    scene.add(group);
-
-    var adjustCols = function(offset, data){
-    var baseHue = 280;
-            for (j=0; j<columns.length; j++){
-                var value = data[j];
-                if(value){
-                    var hue = baseHue - parseInt(value)/2;
-                    columns[j].material.color = new THREE.Color("hsl("+hue+",50%,50%)");
-                    columns[j].scale.x = value/22;
-                    columns[j].material.opacity = .75;
-                }
-                else{
-                    columns[j].material.color = new THREE.Color("hsl("+baseHue+",50%,50%)");
-                    columns[j].material.opacity = .5;
-                    columns[j].scale.y = .2;
-                    columns[j].scale.x = .3;
-                }
-            }
+    var adjustVertices = function(offset, data){
       
     };
     
     
     var ambientlight = new THREE.AmbientLight(0xffffff, .5);
-    var light = new THREE.SpotLight( 0xffffff, .85 );
-    light.angle = Math.PI;
-    light.castShadow = true;
-    light.position.set(-(Math.PI/180)*45, 15, 50);
+    // var light = new THREE.SpotLight( 0xffffff, .85 );
+    // light.angle = Math.PI;
+    // light.castShadow = true;
+    // light.position.set(-(Math.PI/180)*45, 15, 50);
     
-    camera.position.set(-20,-75,50);
+    camera.position.set(0,0,25);
     //camera.lookAt(scene.position);
 
-    scene.add(light);
+    // scene.add(light);
     scene.add(ambientlight);
     
-
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.minDistance = .3;
     controls.maxDistance = 200;
-    controls.enableZoom = true;
+    controls.enableZoom = false;
     controls.autoRotate = false;
 
     var animate = function(){
@@ -137,12 +117,10 @@ function init(){
         var offset = Date.now() * 0.0004;
         //var data = analyser.getAverageFrequency();
         var data = analyser.getFrequencyData(); // Array of frequencies
-        adjustCols(offset, data);
+        adjustVertices(offset, data);
     }
 
     animate();
-
-    
 
     var onWindowResize = function(){
         camera.aspect = domEl.offsetWidth / domEl.offsetHeight;
