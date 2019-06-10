@@ -84,7 +84,7 @@ function init(){
     var amplitude = 45;
     var size = 360 / resolution;
 
-    createSphere(120,0,0,0,90);
+    createSphere(120,0,0,0,180);
 
     for(var i = 0; i < resolution; i++) {
         var segment = ( i * size ) * Math.PI / 180;
@@ -102,7 +102,7 @@ function init(){
         createSphere(12,x,y,z,200);     
     }
 
-    // group.position.z = 10;
+     group.rotation.y = -40;
     scene.add(group);
     
     var updateSpheres = function(offset, data){
@@ -142,7 +142,7 @@ function init(){
     //light.castShadow = true;
     light.position.set(-(Math.PI/180)*45, 15, 50);
     
-    camera.position.set(0,-90,45);
+    camera.position.set(0,-40,0);
     //camera.lookAt(scene.position);
 
     scene.add(light);
