@@ -3,6 +3,8 @@ function rand(min, max){
     return parseInt(Math.random() * (max - min) + min);
 };
 
+
+
 function init(){
      
     var bufferSize = 512;
@@ -11,6 +13,8 @@ function init(){
         antialias: true,
         alpha:true
     });
+
+    var Spheres = [];
     
     var domEl = document.getElementById('threecontainer');
     renderer.setSize(domEl.offsetWidth, domEl.offsetHeight);
@@ -34,6 +38,8 @@ function init(){
         }
     });
 
+    var NoiseGen = new SimplexNoise;
+
     // create an AudioListener and add it to the camera
     var listener = new THREE.AudioListener();
     camera.add( listener );
@@ -47,62 +53,104 @@ function init(){
     audioLoader.load( 'sounds/beat.mp3', function( buffer ) {
         sound.setBuffer( buffer );
         sound.setLoop(true);
-        sound.setVolume(.85);
+        sound.setVolume(.95);
         playbtn.style.opacity = 1;
         loader.style.display = 'none';
     });
    
     //SOUND
 	
-    var axesHelper = new THREE.AxesHelper( 50 );
-    scene.add( axesHelper );
+    // var axesHelper = new THREE.AxesHelper( 50 );
+    // scene.add( axesHelper );
 
-    var frequencies = analyser.getFrequencyData();
-    analyser.smoothingTimeConstant;
-    var vertices = [];
+    var createSphere = function(r, x, y, z){
+        var sphereGeometry = new THREE.IcosahedronGeometry( r, 4 );
+        // var sphereGeometry = new THREE.SphereGeometry( r, 64, 64 );
+        var material = new THREE.MeshLambertMaterial({
+            wireframe: true
+        });
 
-    var sphereGeometry = new THREE.SphereGeometry(5, 10, 10);
-    var material = new THREE.MeshBasicMaterial({
-        wireframe: true
-    });
+        var sphere = new THREE.Mesh(sphereGeometry, material);
+        sphere.radius = r;
+        sphere.origin = {
+            x:x,
+            y:y,
+            z:z
+        };
+        sphere.position.set(x, y, z);
+        scene.add(sphere);
+        Spheres.push(sphere);
+        return sphere;
+    };
+    var radius = 3;
 
-    var sphere = new THREE.Mesh(sphereGeometry, material);
-    scene.add(sphere);
 
-    var vertices = sphere.geometry.vertices;
-    console.log(vertices);
-    var center = new THREE.Vector3(0,0,0);
-    for (i=0; i<vertices.length; i++){
-        var x = vertices[i].x;
-        var y = vertices[i].y;
-        var z = vertices[i].z;
-        var scale = 10;
-        var dist = new THREE.Vector3(x,y,z).sub(center);
-        
-        var size = scale/2;
-        // var magnitude = 4.0;
-       
-        vertices[i].x += dist.x;
-        vertices[i].y += dist.y;
-        vertices[i].z += dist.z;
-        
-    }
 
+    createSphere(radius,-30,-15,0);
+    createSphere(radius,-15,-15,0);
+    createSphere(radius,-0,-15,0);
+    createSphere(radius,15,-15,0);
+    createSphere(radius,30,-15,0);
+
+    createSphere(radius,-30,0,0);
+    createSphere(radius,-15,0,0);
+    createSphere(radius,-0,0,0);
+    createSphere(radius,15,0,0);
+    createSphere(radius,30,0,0);
+
+    createSphere(radius,-30,15,0);
+    createSphere(radius,-15,15,0);
+    createSphere(radius,-0,15,0);
+    createSphere(radius,15,15,0);
+    createSphere(radius,30,15,0);
+
+    
+    
+//console.log(Spheres[0].geometry.vertices);
+    // var vertices = sphere.geometry.vertices;
+
+    
     var adjustVertices = function(offset, data){
-      
+
+        // var center = new THREE.Vector3(0,0,0);
+        for (var i=0; i<Spheres.length; i++){
+            var radius = Spheres[i].radius;
+            var scale = data[i*(i+1)]/255;
+            var hue;
+            var baseHue = 255;
+            for (var j=0; j<Spheres[i].geometry.vertices.length; j++){
+                var vertex = Spheres[i].geometry.vertices[j];
+                if(data){
+                    vertex.normalize().multiplyScalar(radius + (scale) * NoiseGen.noise(vertex.x + offset, vertex.y + scale));
+                    hue = baseHue - parseInt(data[i*Spheres.length]);
+                }
+                else{
+                    hue = baseHue;
+                }
+            }
+            
+            
+            Spheres[i].material.color = new THREE.Color("hsl("+hue+",100%,50%)");
+
+            // Spheres[i].geometry.computeVertexNormals();
+            // Spheres[i].geometry.normalsNeedUpdate = true;
+            Spheres[i].geometry.verticesNeedUpdate = true;
+            Spheres[i].geometry.colorsNeedUpdate = true;
+        }
+
     };
     
     
     var ambientlight = new THREE.AmbientLight(0xffffff, .5);
-    // var light = new THREE.SpotLight( 0xffffff, .85 );
-    // light.angle = Math.PI;
-    // light.castShadow = true;
-    // light.position.set(-(Math.PI/180)*45, 15, 50);
+    var light = new THREE.SpotLight( 0xffffff, .85 );
+    light.angle = Math.PI;
+    light.castShadow = true;
+    light.position.set(-(Math.PI/180)*45, 15, 50);
     
-    camera.position.set(0,0,25);
+    camera.position.set(0,-40,35);
     //camera.lookAt(scene.position);
 
-    // scene.add(light);
+    scene.add(light);
     scene.add(ambientlight);
     
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -114,19 +162,22 @@ function init(){
     var animate = function(){
         renderer.render( scene, camera );
         requestAnimationFrame( animate );
-        var offset = Date.now() * 0.0004;
-        //var data = analyser.getAverageFrequency();
+        var offset = Date.now() * 0.0001;
         var data = analyser.getFrequencyData(); // Array of frequencies
         adjustVertices(offset, data);
     }
 
     animate();
 
+
+
+
+
     var onWindowResize = function(){
         camera.aspect = domEl.offsetWidth / domEl.offsetHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(domEl.offsetWidth, domEl.offsetHeight);
-        frequencies[0];
+        //frequencies[0];
     };
 
     window.addEventListener( 'resize', onWindowResize, false );
