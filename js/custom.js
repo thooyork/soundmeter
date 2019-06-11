@@ -23,7 +23,9 @@ function init(){
 
     var camera = new THREE.PerspectiveCamera( 55, domEl.offsetWidth / domEl.offsetHeight, 1, 500 ); 
     var scene = new THREE.Scene();
-    var group = new THREE.Group();
+    var group1 = new THREE.Group();
+    var group2 = new THREE.Group();
+    var group3 = new THREE.Group();
 
     //SOUND
     var loader = document.getElementById('loader');
@@ -64,7 +66,7 @@ function init(){
     // var axesHelper = new THREE.AxesHelper( 50 );
     // scene.add( axesHelper );
 
-    var createSphere = function(r, x, y, z, hue){
+    var createSphere = function(r, x, y, z, hue, group){
         var sphereGeometry = new THREE.IcosahedronGeometry( r, 3 );
         // var sphereGeometry = new THREE.SphereGeometry( r, 64, 64 );
         var material = new THREE.MeshLambertMaterial({
@@ -80,30 +82,48 @@ function init(){
         return sphere;
     };
 
-    var resolution = 10;
+    var resolution = 7;
     var amplitude = 45;
     var size = 360 / resolution;
 
-    createSphere(120,0,0,0,180);
+    //createSphere(120,0,0,0,180);
 
     for(var i = 0; i < resolution; i++) {
         var segment = ( i * size ) * Math.PI / 180;
         var x = Math.cos( segment ) * amplitude;
-        var z = 0;
         var y = Math.sin( segment ) * amplitude; 
-        createSphere(6,x,y,z,320);     
+        var z = 0;
+        createSphere(6,x,y,z,320, group1);     
     }
 
     for(var i = 0; i < resolution; i++) {
         var segment = ( i * size ) * Math.PI / 180;
         var x = Math.cos( segment ) * amplitude;
-        var z = 0;
         var y = Math.sin( segment ) * amplitude; 
-        createSphere(12,x,y,z,200);     
+        var z = 0;
+        createSphere(6,x,y,z,300, group2);     
     }
 
-     group.rotation.y = -40;
-    scene.add(group);
+    for(var i = 0; i < resolution; i++) {
+        var segment = ( i * size ) * Math.PI / 180;
+        var x = Math.cos( segment ) * amplitude;
+        var y = Math.sin( segment ) * amplitude; 
+        var z = 0;
+        createSphere(6,x,y,z,280, group3);     
+    }
+
+    // group1.rotation.y = -40;
+    // group2.rotation.y = -80;
+
+    group1.position.x = -55;
+    group1.rotation.x = Math.PI/2;
+
+    group3.position.x = 55;
+    group3.rotation.x = Math.PI/2;
+
+    scene.add(group1);
+    scene.add(group2);
+    scene.add(group3);
     
     var updateSpheres = function(offset, data){
        
@@ -142,7 +162,7 @@ function init(){
     //light.castShadow = true;
     light.position.set(-(Math.PI/180)*45, 15, 50);
     
-    camera.position.set(0,-40,0);
+    camera.position.set(-3,-50,8);
     //camera.lookAt(scene.position);
 
     scene.add(light);
@@ -150,20 +170,20 @@ function init(){
     
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.minDistance = .3;
-    controls.maxDistance = 200;
+    controls.maxDistance = 70;
     controls.enableZoom = true;
     controls.autoRotate = false;
 
     var animate = function(){
         renderer.render( scene, camera );
         requestAnimationFrame( animate );
-        var offset = Date.now() * 0.0002;
+        var offset = Date.now() * 0.0001;
         var data = analyser.getFrequencyData(); // Array of frequencies
         updateSpheres(offset, data);
         if(sound.isPlaying){
-            group.rotation.y += 0.001;
-            group.rotation.x += 0.001;
-            group.rotation.z += 0.002;
+             group1.rotation.z += 0.001;
+             group2.rotation.z += 0.001;
+             group3.rotation.z -= 0.001;
         }
     }
 
