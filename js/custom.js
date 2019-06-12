@@ -93,7 +93,7 @@ function init(){
         var x = Math.cos( segment ) * amplitude;
         var y = Math.sin( segment ) * amplitude; 
         var z = 0;
-        createSphere(6,x,y,z,320, group1);     
+        createSphere(6,x,y,z,280, group1);     
     }
 
     for(var i = 0; i < resolution; i++) {
@@ -101,7 +101,7 @@ function init(){
         var x = Math.cos( segment ) * amplitude;
         var y = Math.sin( segment ) * amplitude; 
         var z = 0;
-        createSphere(6,x,y,z,300, group2);     
+        createSphere(6,x,y,z,200, group2);     
     }
 
     for(var i = 0; i < resolution; i++) {
@@ -109,7 +109,7 @@ function init(){
         var x = Math.cos( segment ) * amplitude;
         var y = Math.sin( segment ) * amplitude; 
         var z = 0;
-        createSphere(6,x,y,z,280, group3);     
+        createSphere(6,x,y,z,270, group3);     
     }
 
     // group1.rotation.y = -40;
